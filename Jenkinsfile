@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-    tools {
-        nodejs 'node18'
-    }
-
     stages {
         stage('Checkout') {
             steps {
@@ -12,29 +8,44 @@ pipeline {
             }
         }
         
-        stage('Install dependencies') {
+        stage('Install Node.js') {
             steps {
-                // Флаг --unsafe-perm решает проблемы с правами доступа внутри контейнеров Jenkins
-                sh 'npm install --unsafe-perm'
+                // Скачиваем архив Node.js 18 напрямую без использования apt-get (чтобы не было ошибок с правами)
+                sh '''
+                    mkdir -p local_node
+                    curl -fsSL https://nodejs.org | tar -xJ --strip-components=1 -C local_node
+                '''
+            }
+        }
+        
+        stage('Install project dependencies') {
+            steps {
+                // Прописываем путь к скачанному Node.js в системное окружение текущей сборки
+                withEnv(["PATH+NODE=${workspace}/local_node/bin"]) {
+                    sh 'npm install --unsafe-perm'
+                }
             }
         }
         
         stage('Install Playwright Browsers') {
             steps {
-                sh 'npx playwright install'
+                withEnv(["PATH+NODE=${workspace}/local_node/bin"]) {
+                    sh 'npx playwright install'
+                }
             }
         }
         
         stage('Run Playwright tests') {
             steps {
-                sh 'npx playwright test --headless'
+                withEnv(["PATH+NODE=${workspace}/local_node/bin"]) {
+                    sh 'npx playwright test --headless'
+                }
             }
         }
     }
     
     post {
         always {
-            // Чтобы Jenkins не падал, если папка отчета не создалась, ставим allowMissing: true
             publishHTML(target: [
                 allowMissing: true,
                 alwaysLinkToLastBuild: true,
