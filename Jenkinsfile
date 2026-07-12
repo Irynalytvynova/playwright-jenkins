@@ -18,11 +18,7 @@ pipeline {
             }
         }
         
-        stage('Install Playwright System Linux Deps') {
-            steps {
-                sh 'npx playwright install-deps'
-            }
-        }
+        // Шаг 'Install Playwright System Linux Deps' УДАЛЕН, чтобы избежать зависания прав в Docker
         
         stage('Install Playwright Browsers') {
             steps {
@@ -32,9 +28,8 @@ pipeline {
         
         stage('Run Playwright tests') {
             steps {
-                // CI=true активирует CI-режим в Playwright
-                // xvfb-run создает виртуальный экран в оперативной памяти для корректного запуска Chromium
                 withEnv(['CI=true']) {
+                    // xvfb-run берет на себя создание виртуального экрана
                     sh 'xvfb-run --auto-servernum --server-args="-screen 0 1280x1024x24" npx playwright test'
                 }
             }
@@ -43,14 +38,7 @@ pipeline {
     
     post {
         always {
-            publishHTML(target: [
-                allowMissing: true,
-                alwaysLinkToLastBuild: true,
-                keepAll: true,
-                reportDir: 'playwright-report',
-                reportFiles: 'index.html',
-                reportName: 'Playwright HTML Report'
-            ])
+            archiveArtifacts artifacts: 'playwright-report/**/*', allowEmptyArchive: true
         }
     }
 }
