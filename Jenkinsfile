@@ -32,9 +32,10 @@ pipeline {
         
         stage('Run Playwright tests') {
             steps {
-                // Переменная CI=true заставит Playwright принудительно запустить браузер скрытно в памяти Docker
+                // CI=true активирует CI-режим в Playwright
+                // xvfb-run создает виртуальный экран в оперативной памяти для корректного запуска Chromium
                 withEnv(['CI=true']) {
-                    sh 'npx playwright test'
+                    sh 'xvfb-run --auto-servernum --server-args="-screen 0 1280x1024x24" npx playwright test'
                 }
             }
         }
