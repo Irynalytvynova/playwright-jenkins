@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    triggers {
+        // Запуск каждый день ровно в 9:00 утра
+        cron('0 9 * * *') 
+    }
+
     tools {
         nodejs 'node18'
     }
@@ -27,7 +32,6 @@ pipeline {
         stage('Run Playwright tests') {
             steps {
                 withEnv(['CI=true']) {
-                    // Просто запускаем тесты. Благодаря headless: true в конфиге, дисплей не потребуется
                     sh 'npx playwright test'
                 }
             }
