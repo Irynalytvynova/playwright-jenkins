@@ -15,10 +15,8 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev */
   reporter: [
-    ['html', { 
-      outputFolder: 'playwright-report', // Явно указываем папку в корне проекта
-      open: 'never' 
-    }]
+    ['html', { outputFolder: 'playwright-report', open: 'never' }],
+    ['junit', { outputFile: 'results.xml' }]
   ],
   /* Shared settings for all the projects below. See https://playwright.dev. */
   use: {

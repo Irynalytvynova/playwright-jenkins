@@ -40,6 +40,10 @@ pipeline {
     
     post {
         always {
+            // Читаем результаты тестов и выводим пункт "Test Result" в левое меню
+            junit testResults: 'results.xml', allowEmptyResults: true
+            
+            // Архивацию папки можно оставить, чтобы файлы сохранялись на диске
             archiveArtifacts artifacts: 'playwright-report/**/*', allowEmptyArchive: true
         }
     }
