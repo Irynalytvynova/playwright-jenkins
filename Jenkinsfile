@@ -18,9 +18,15 @@ pipeline {
             }
         }
         
+        stage('Install Playwright System Linux Deps') {
+            steps {
+                // Добавляем скачивание системных библиотек Ubuntu/Debian
+                sh 'npx playwright install-deps'
+            }
+        }
+        
         stage('Install Playwright Browsers') {
             steps {
-                // Скачиваем необходимые браузеры прямо в контейнер Jenkins
                 sh 'npx playwright install'
             }
         }
