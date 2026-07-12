@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        // Указываем имя инструмента, который мы только что сохранили в настройках Jenkins
+        // Указываем имя инструмента, который мы сохранили в настройках Jenkins
         nodejs 'node18'
     }
 
@@ -22,11 +22,11 @@ pipeline {
         
         stage('Run Playwright tests') {
             steps {
-                // Запускаем ваши тесты Playwright в фоновом режиме
-                sh 'npx playwright test --headless'
+                // Запуск тестов без лишних флагов (он скрытый по умолчанию)
+                sh 'npx playwright test'
             }
         }
-    }
+    } // Скобка, которая закрывает блок всех stages
     
     post {
         always {
