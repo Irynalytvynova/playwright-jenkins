@@ -4,29 +4,41 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // Скачиваем код из репозитория GitHub в рабочую папку Jenkins
-                checkout scm 
+                checkout scm
             }
         }
         
-        stage('Install project dependencies') {
+        stage('Install Node.js') {
             steps {
-                // Устанавливаем пакеты с помощью Windows-команды bat
-                bat 'npm install'
+                // Скачиваем стабильную версию Node.js для Linux и распаковываем её встроенной командой tar
+                sh '''
+                    mkdir -p local_node
+                    curl -fsSL https://nodejs.org | tar -xz --strip-components=1 -C local_node
+                '''
+            }
+        }
+        
+        stage('Install dependencies') {
+            steps {
+                // Подключаем скачанный Node.js к путям выполнения
+                withEnv(["PATH+NODE=${workspace}/local_node/bin"]) {
+                    sh 'npm install'
+                }
             }
         }
         
         stage('Run Playwright tests') {
             steps {
-                // Запускаем тесты скрытно на вашем компьютере
-                bat 'npx playwright test --headless'
+                withEnv(["PATH+NODE=${workspace}/local_node/bin"]) {
+                    // Запуск тестов в фоновом режиме на сервере
+                    sh 'npx playwright test --headless'
+                }
             }
         }
     }
     
     post {
         always {
-            // Публикуем HTML-отчет, если он сгенерировался
             publishHTML(target: [
                 allowMissing: true,
                 alwaysLinkToLastBuild: true,
