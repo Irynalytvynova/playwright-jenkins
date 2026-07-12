@@ -1,5 +1,11 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            // Официальный образ Playwright со всеми установленными браузерами и Node.js внутри
+            image 'mcr.microsoft.com/playwright:v1.47.0-jammy'
+            args '-u root'
+        }
+    }
 
     stages {
         stage('Checkout') {
@@ -8,43 +14,24 @@ pipeline {
             }
         }
         
-        stage('Install Node.js') {
+        stage('Install dependencies') {
             steps {
-                // Скачиваем архив .tar.gz — он распакуется на любой машине без дополнительных утилит
-                sh '''
-                    mkdir -p local_node
-                    curl -fsSL https://nodejs.org | tar -xz --strip-components=1 -C local_node
-                '''
-            }
-        }
-        
-        stage('Install project dependencies') {
-            steps {
-                withEnv(["PATH+NODE=${workspace}/local_node/bin"]) {
-                    sh 'npm install --unsafe-perm'
-                }
-            }
-        }
-        
-        stage('Install Playwright Browsers') {
-            steps {
-                withEnv(["PATH+NODE=${workspace}/local_node/bin"]) {
-                    sh 'npx playwright install'
-                }
+                // Чистая установка пакетов внутри контейнера Playwright
+                sh 'npm ci'
             }
         }
         
         stage('Run Playwright tests') {
             steps {
-                withEnv(["PATH+NODE=${workspace}/local_node/bin"]) {
-                    sh 'npx playwright test --headless'
-                }
+                // Запуск тестов в headless режиме
+                sh 'npx playwright test --headless'
             }
         }
     }
     
     post {
         always {
+            // Публикация красивого HTML-отчета
             publishHTML(target: [
                 allowMissing: true,
                 alwaysLinkToLastBuild: true,
