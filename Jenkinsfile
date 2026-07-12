@@ -1,11 +1,5 @@
 pipeline {
-    agent {
-        docker {
-            // Используем официальный образ Playwright со всеми браузерами внутри
-            image 'mcr.microsoft.com/playwright:v1.47.0-jammy'
-            args '-u root'
-        }
-    }
+    agent any // Запуск напрямую на сервере Jenkins
 
     stages {
         stage('Checkout') {
@@ -14,16 +8,30 @@ pipeline {
             }
         }
         
-        stage('Install dependencies') {
+        stage('Install Node.js & Dependencies') {
             steps {
-                // Меняем bat на Linux-команду sh
+                // Обновляем пакеты и устанавливаем Node.js прямо в контейнер Jenkins
+                sh '''
+                    apt-get update && apt-get install -y curl
+                    curl -fsSL https://nodesource.com | bash -
+                    apt-get install -y nodejs
+                '''
+                // Устанавливаем npm-пакеты вашего проекта
                 sh 'npm ci'
+            }
+        }
+        
+        stage('Install Playwright Browsers') {
+            steps {
+                // Устанавливаем системные библиотеки и сами браузеры для Playwright
+                sh 'npx playwright install-deps'
+                sh 'npx playwright install'
             }
         }
         
         stage('Run Playwright tests') {
             steps {
-                // Запускаем тесты скрытно внутри контейнера
+                // Запускаем тесты скрытно
                 sh 'npx playwright test --headless'
             }
         }
@@ -31,7 +39,7 @@ pipeline {
     
     post {
         always {
-            // Теперь этот шаг сработает, так как мы установили плагин HTML Publisher
+            // Публикация отчета теперь сработает внутри контекста 'agent any'
             publishHTML(target: [
                 allowMissing: false,
                 alwaysLinkToLastBuild: true,
