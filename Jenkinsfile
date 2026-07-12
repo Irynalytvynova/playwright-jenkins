@@ -1,37 +1,32 @@
 pipeline {
-    agent {
-        docker {
-            // Официальный образ Playwright со всеми установленными браузерами и Node.js внутри
-            image 'mcr.microsoft.com/playwright:v1.47.0-jammy'
-            args '-u root'
-        }
-    }
+    agent any
 
     stages {
         stage('Checkout') {
             steps {
-                checkout scm
+                // Скачиваем код из репозитория GitHub в рабочую папку Jenkins
+                checkout scm 
             }
         }
         
-        stage('Install dependencies') {
+        stage('Install project dependencies') {
             steps {
-                // Чистая установка пакетов внутри контейнера Playwright
-                sh 'npm ci'
+                // Устанавливаем пакеты с помощью Windows-команды bat
+                bat 'npm install'
             }
         }
         
         stage('Run Playwright tests') {
             steps {
-                // Запуск тестов в headless режиме
-                sh 'npx playwright test --headless'
+                // Запускаем тесты скрытно на вашем компьютере
+                bat 'npx playwright test --headless'
             }
         }
     }
     
     post {
         always {
-            // Публикация красивого HTML-отчета
+            // Публикуем HTML-отчет, если он сгенерировался
             publishHTML(target: [
                 allowMissing: true,
                 alwaysLinkToLastBuild: true,
