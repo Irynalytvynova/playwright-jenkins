@@ -20,7 +20,6 @@ pipeline {
         
         stage('Install Playwright System Linux Deps') {
             steps {
-                // Добавляем скачивание системных библиотек Ubuntu/Debian
                 sh 'npx playwright install-deps'
             }
         }
@@ -33,7 +32,10 @@ pipeline {
         
         stage('Run Playwright tests') {
             steps {
-                sh 'npx playwright test'
+                // Переменная CI=true заставит Playwright принудительно запустить браузер скрытно в памяти Docker
+                withEnv(['CI=true']) {
+                    sh 'npx playwright test'
+                }
             }
         }
     }
